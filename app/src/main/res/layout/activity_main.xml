@@ -49,15 +49,16 @@
                 android:onClick="clear"/>
 
             <Button
-                android:id="@+id/dot"
+                android:id="@+id/del"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="."
+                android:text="DEL"
                 android:textColor="#fff"
                 android:background="@color/colorPrimary"
                 android:layout_weight="1"
                 android:layout_margin="10dp"
-                android:textSize="25dp" />
+                android:textSize="25dp"
+                android:onClick="deleteLastNumber"/>
 
             <Button
                 android:id="@+id/module"
@@ -68,7 +69,8 @@
                 android:background="@color/colorPrimary"
                 android:layout_weight="1"
                 android:layout_margin="10dp"
-                android:textSize="25dp" />
+                android:textSize="25dp"
+                android:onClick="setOperation"/>
 
             <Button
                 android:id="@+id/divide"

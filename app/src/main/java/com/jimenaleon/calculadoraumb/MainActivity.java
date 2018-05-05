@@ -1,24 +1,18 @@
 package com.jimenaleon.calculadoraumb;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 
-public class MainActivity extends AppCompatActivity{
+import java.text.DecimalFormat;
+
+import static com.jimenaleon.calculadoraumb.MainActivity.Operation.NONE;
+
+public class MainActivity extends AppCompatActivity {
 
     private EditText edit_text;
-    private Button one, two, three, four, five, six, seven, eight, nine, zero;
-    private Button clear;
-    private double valueOne;
-    private double valueTwo;
-    private static final char ADDITION = '+';
-    private static final char SUBTRACTION = '-';
-    private static final char MULTIPLICATION = '*';
-    private static final char DIVISION = '/';
-    private char current_action;
-    private boolean new_operation = true;
+    private static final String EMPTY = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,30 +20,14 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
 
         edit_text = (EditText) findViewById(R.id.edit_text);
-        one = (Button) findViewById(R.id.one);
-        two = (Button) findViewById(R.id.two);
-        three = (Button) findViewById(R.id.three);
-        four = (Button) findViewById(R.id.four);
-        five = (Button) findViewById(R.id.five);
-        six = (Button) findViewById(R.id.six);
-        seven = (Button) findViewById(R.id.seven);
-        eight = (Button) findViewById(R.id.eight);
-        nine = (Button) findViewById(R.id.nine);
-        zero = (Button) findViewById(R.id.zero);
-        clear = (Button) findViewById(R.id.clear);
     }
 
-    public void writeNumber(int number){
-        if(new_operation){
-            edit_text.setText("");
-            new_operation = false;
-        }
-        String text = edit_text.getText().toString();
-        edit_text.setText(text + number);
+    public void writeNumber(int number) {
+        edit_text.append(String.valueOf(number));
     }
 
     public void setNumber(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.zero:
                 writeNumber(0);
                 break;
@@ -93,56 +71,92 @@ public class MainActivity extends AppCompatActivity{
     }
 
     public void clear(View view) {
-        if(view.getId() == R.id.clear){
-            edit_text.setText("");
-        }
+        if (view.getId() == R.id.clear) edit_text.setText(EMPTY);
     }
 
     public void setOperation(View view) {
 
-        valueOne = Double.parseDouble(edit_text.getText().toString());
-        switch (view.getId()){
+        String value = edit_text.getText().toString();
+        value = value.replaceAll("[^\\d.]", EMPTY);
+        if (value.equals(EMPTY)) return;
+        edit_text.setText(EMPTY);
+        switch (view.getId()) {
             case R.id.plus:
-                current_action = ADDITION;
-                edit_text.setText(edit_text.getText().toString() + " + ");
+                edit_text.setText(String.format("%s+", value));
                 break;
-
             case R.id.minus:
-                current_action = SUBTRACTION;
-                edit_text.setText(edit_text.getText().toString() + " - ");
+                edit_text.setText(String.format("%s-", value));
                 break;
-
             case R.id.multiply:
-                current_action = MULTIPLICATION;
-                edit_text.setText(edit_text.getText().toString() + " x ");
+                edit_text.setText(String.format("%sx", value));
                 break;
-
             case R.id.divide:
-                current_action = DIVISION;
-                edit_text.setText(edit_text.getText().toString() + " / ");
+                edit_text.setText(String.format("%s/", value));
+                break;
+            case R.id.module:
+                edit_text.setText((value+"%"));
                 break;
         }
     }
 
     public void setResult(View view) {
-        new_operation = true;
-        if(current_action != 0){
-            String operation = edit_text.getText().toString();
-            String[] elements = new String[2];
-            elements = operation.split(" ");
-            valueTwo = Double.parseDouble(elements[2]);
-            double result = 0;
-            switch (current_action){
-                case '-':
-                    result = valueOne - valueTwo;
-                    break;
+        String value = edit_text.getText().toString();
+        String s = value.replaceAll("\\d|\\.", EMPTY);
+        Operation operation = Operation.getOperation(s);
+        if(operation == NONE) return;
+        value = value.replaceAll("[^\\d.]", " ");
+        String[] elements = value.split(" ");
+        if (elements.length < 2) return;
+        double valueOne = Double.parseDouble(elements[0]);
+        double valueTwo = Double.parseDouble(elements[1]);
+        double result = 0;
+        switch (operation) {
+            case ADDITION:
+                result = valueOne + valueTwo;
+                break;
+            case SUBTRACTION:
+                result = valueOne - valueTwo;
+                break;
+            case MULTIPLICATION:
+                result = valueOne * valueTwo;
+                break;
+            case DIVISION:
+                result = valueOne / valueTwo;
+                break;
+            case MODULE:
+                result = valueOne % valueTwo;
+                break;
+        }
+        DecimalFormat format = new DecimalFormat("0.#");
+        edit_text.setText(format.format(result));
+    }
 
-                case '/':
-                    result = valueOne / valueTwo;
-                    break;
-            }
-            edit_text.setText(String.valueOf(result));
-            current_action = 0;
+    public void deleteLastNumber(View view) {
+        String value = edit_text.getText().toString();
+        if(value.length() <= 0) return;
+        edit_text.setText(value.substring(0,value.length() -1));
+    }
+
+    public enum Operation {
+        NONE(""),
+        ADDITION("+"),
+        SUBTRACTION("-"),
+        MULTIPLICATION("x"),
+        DIVISION("/"),
+        MODULE("%");
+
+        private final String value;
+        public String getValue() {return value;}
+        Operation(String s) {
+            value = s;
+        }
+        public static Operation getOperation(String s){
+            if (ADDITION.getValue().equals(s)) return ADDITION;
+            if (SUBTRACTION.getValue().equals(s)) return SUBTRACTION;
+            if (MULTIPLICATION.getValue().equals(s)) return MULTIPLICATION;
+            if (DIVISION.getValue().equals(s)) return DIVISION;
+            if (MODULE.getValue().equals(s)) return MODULE;
+            return NONE;
         }
     }
 }
